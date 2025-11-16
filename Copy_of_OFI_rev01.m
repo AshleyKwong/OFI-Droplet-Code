@@ -26,35 +26,38 @@ close all; clc;
 % imageDir ='D:\TIF_y235_aoan08_aoafn12_secondplate_U20_01\B0200.tif'; % the specific case to analyze
 % imageDir ='D:\y235_aoan08_aoafn12_U20_downstream_02\B0200.tif'; % the specific case to analyze
 % imageDir ='D:\TIF y235_aoan11_aoafn11_U20_downstream_02\B0200.tif'; % the specific case to analyze
-imageDir = 'D:\TIF y235_aoan11_aoafn11_U20_secondplate_01\B0200.tif'; 
+% imageDir = 'D:\TIF y235_aoan11_aoafn11_U20_secondplate_01\B0200.tif'; 
 
 % imageDir = 'D:\TIF EmptyTunnel_downstream_U20_2\B0200.tif'; % the specific case to analyze
 % imageDir = 'D:\TIF EmptyTunnel_secondplate_U20\B0200.tif'; 
-% imageDir = 'D:\TIF Case 2 Downstream\B0200.tif';
+imageDir = 'D:\TIF Case 2 Downstream\B0200.tif';
 % imageDir = 'D:\TIF Case 2 Second Plate\B0200.tif'; 
 
 
 % tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06062025\y235_aoan08_aoafn12\y235_aoan08_aoafn12_U20_downstream_02.mat'; 
 % tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06052025\y235_aoan11_aoafn11_repeat\y235_aoan11_aoafn11_U20_downstream_02.mat'; 
-% tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06062025\y250_aoan04_aoafn06\y250_aoan04_aoafn06_U20_downstream_02.mat'; 
+tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06062025\y250_aoan04_aoafn06\y250_aoan04_aoafn06_U20_downstream_02.mat'; 
 % tunnelConditions =  'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06042025\Empty Tunnel\Emptytunnelofi_U20_downstream_02.mat'; 
 
 % tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06072025\y235_aoan08_aoafn12\y235_aoan08_aoafn12_U20_secondplate_01.mat'; % tunnel conditions at time of measurement.
 % tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06082025\emptytunnel_secondplate\emptytunnel_secondplate_U20_secondplate_01.mat'; 
 % tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06072025\y250_aoan04_aoafn06\y250_aoan04_aoafn06_U20_secondplate_02.mat';
-tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06072025\y235_aoan11_aoafn11\y235_aoan11_aoafn11_U20_secondplate_01.mat'; 
+% tunnelConditions = 'F:\LAB7 COMPUTER\OFI NIDAQ PRESSURES\AK_OFI\06072025\y235_aoan11_aoafn11\y235_aoan11_aoafn11_U20_secondplate_01.mat'; 
 
-% calibrationFile = 'D:\ALK_OFI_250530_105600\Properties\Calibration\Calibration.xml'; 
-calibrationFile = 'D:\ALK_OFI_06072025\Properties\Calibration\Calibration.xml'; 
-folder = 'D:\TIF y235_aoan11_aoafn11_U20_secondplate_01\'; 
+calibrationFile = 'D:\ALK_OFI_250530_105600\Properties\Calibration\Calibration.xml'; 
+% calibrationFile = 'D:\ALK_OFI_06072025\Properties\Calibration\Calibration.xml'; 
+folder = 'D:\TIF Case 2 Downstream\'; 
 orgimg = imread(imageDir);
+
 %------------ USER INPUT -------------------------------------------
-numOfCameras = 4;
-pixelpermm =  14.95;  % [15.95, 14.95, 14.95, 14.95, 14.95]; 
+numOfCameras = 3;
+pixelpermm =  15.95;  % [15.95, 14.95, 14.95, 14.95, 14.95]; 
 cameraNo = 2; 
-calibration_cameraNo= 3; 
-cam_z = 476.349; % vertical distance between the camera and calibration plate. 
-camD       =  43.85;  %43.85; %45.49;   % Camera incident angle with respect the normal of measurement plane (deg)
+calibration_cameraNo= 4; 
+cam_z = 499; %476.349; % vertical distance between the camera and calibration plate. 
+camD       =  45.49;  %43.85; %45.49;   % Camera incident angle with respect the normal of measurement plane (deg)\
+
+
 % first plate calibration
 % cam 1 = 48.10
 % cam 2 = 44.48
@@ -96,19 +99,21 @@ totalMeasurementWindow = x0 - xf;
 % physical offset downstream of where the 0 point is from tunnel start. 
 % 8400 is based off the start of the second section from which everything
 % was measured.
-x_globalStart = -(8400 + x0)%-7311; %0; %(x0); % -( x0); % the location of the calibration origin. evt is measured relative to this. negative to go w direction of streamwise. 
+x_globalStart = -7311; %-(8400 + x0)%-7311; %0; %(x0); % -( x0); % the location of the calibration origin. evt is measured relative to this. negative to go w direction of streamwise. 
 
 %% NEED TO ADD A LOOP FOR ALL THE CAMERAS! 
 
 d = dir(folder);
 dirnames = {d(~[d.isdir]).name}';
 
-% this gives the frame of the specific camera with some bound protection so
-% we dont get the edge of the image. 
+% WE DONT NEED TO DO STREAMWISE PADDING UNLESS U WANT TO ZOOM IN ON
+% A REGION !  
+% does not affect the global coordinates as it is taken into account when locating the drops)
 streamwise_padding = 0;  
 spanwise_padding = 0; 
-fullrow_start = cameraImg(cameraNo).GlobalCoordinatesFilteredImg(1) + streamwise_padding + 200; 
-fullrow_end = cameraImg(cameraNo).GlobalCoordinatesFilteredImg(2) - streamwise_padding   ; 
+
+fullrow_start = cameraImg(cameraNo).GlobalCoordinatesFilteredImg(1) + streamwise_padding; 
+fullrow_end = cameraImg(cameraNo).GlobalCoordinatesFilteredImg(2) - streamwise_padding ; 
 fullcol_start =  cameraImg(cameraNo).GlobalCoordinatesFilteredImg(3) + spanwise_padding; 
 fullcol_end = cameraImg(cameraNo).GlobalCoordinatesFilteredImg(4) - spanwise_padding; 
 
@@ -118,31 +123,28 @@ img = imread(imageDir, 'PixelRegion', {[fullrow_start ...
         [fullcol_start...
         , fullcol_end]}); % the x and y are shifted
 
-% img = imread(imageDir, 'PixelRegion',{[600, 3100], [1.7e+04,21079]}); 
-grayimg = mat2gray(img);
-figure(); imagesc(grayimg); 
+framedata = nan(size(img, 1), size(img,2),  length(dirnames)); 
+for ii = 1:length(dirnames) % this is how many images in a case
+    tif_file = fullfile(folder, dirnames{ii});
+    fprintf('Saving frame: %s\n', tif_file);
+    framedata(:,:, ii) = imread(tif_file, 'PixelRegion', {[fullrow_start ...
+        , fullrow_end], ...
+        [fullcol_start...
+        , fullcol_end]});  
+end 
 
-% mean_I = nan(length(dirnames), 1); 
-% for i = 1:100
-%     tif_file = fullfile(folder, dirnames{i}); 
-    % img = imread(tif_file, 'PixelRegion',{[cameraImg(cameraNo).GlobalCoordinatesFilteredImg(1) ...
-    %     , cameraImg(cameraNo).GlobalCoordinatesFilteredImg(2)], ...
-    %     [cameraImg(cameraNo).GlobalCoordinatesFilteredImg(3) ...
-    %     , cameraImg(cameraNo).GlobalCoordinatesFilteredImg(4)]});  % gets each CAMERA frame. 
 
-%     grayimg_current= mat2gray(img);
-%     mean_I(i) = mean(grayimg_current(:)); 
-% end
-% tavg_meanI = mean(mean_I); 
-% grayimg_meansub = grayimg - tavg_meanI; 
-grayimg_meansub = grayimg; 
+figure(2); imagesc(img); title("Example image - frame 200."); 
 
 
 %%
-threshold = 0.3; 
-bw = edge(grayimg_meansub, 'canny', threshold); %By using two thresholds, the Canny method is less likely than the other methods to be fooled by noise, and more likely to detect true weak edges.
-figure();
+copy_img = framedata(:,:,100) - mean(framedata, 3); % do img 100 to try anda avoid oil droplets merging w each other. 
 
+%%
+figure(115); imagesc(copy_img); 
+threshold = 0.05;
+bw = edge(copy_img, 'canny', threshold); %By using two thresholds, the Canny method is less likely than the other methods to be fooled by noise, and more likely to detect true weak edges.
+figure(3);
 imshow(bw); 
 % Find the row and column indices of edge pixels
 [edge_rows, edge_cols] = find(bw);
@@ -157,7 +159,7 @@ combinedNeighborhood = seH.Neighborhood | seV.Neighborhood; % logical OR
 seCombined = strel('arbitrary', combinedNeighborhood);
 
 BW_closed = imdilate(bw, seCombined);
-figure(); 
+figure(4); 
 imshow(BW_closed); 
 
 %%
@@ -170,7 +172,7 @@ end
 labeledImage = labelmatrix(CC);
 RGB_label = label2rgb(labeledImage, 'jet', 'k', 'shuffle'); % colorful display
 
-figure; 
+figure(5); 
 imshow(RGB_label);
 title(sprintf('Connected Components Colored (Total: %d)', CC.NumObjects));
 
@@ -185,8 +187,9 @@ heights = arrayfun(@(s) s.BoundingBox(4), largeClusters);
 sortHeight = find(heights > 50); 
 largeClusters = largeClusters(sortHeight);
 
-figure()
-imshow(grayimg); hold on;
+figure(); 
+imagesc(img); hold on;
+
 hRects = gobjects(length(largeClusters), 1); % preallocate handles
 
 for k = 1:length(largeClusters)
@@ -227,11 +230,10 @@ end
 hold off;
 axis on; 
 figure();
-imshow(grayimg); hold on;
+imagesc(img); hold on;
 % ---- After user interacts, save new rectangle positions ----
 % User must manually adjust rectangles, then run this code to update
 for k = 1:length(largeClusters)
-
     rectangle('Position', largeClusters(k).searchBox, 'EdgeColor', 'g', 'LineWidth', 1);
 end
 
@@ -254,18 +256,16 @@ if strcmp(addMore, 'Yes')
         largeClusters(N).BoundingBox = pos;
         largeClusters(N).Area = pos(3)*pos(4);
         largeClusters(N).Centroid = [pos(1)+pos(3)/2, pos(2)+pos(4)/2];
-        
         keepAdding = questdlg('Add another rectangle?', 'Add?', 'Yes','No','No');
         moreRects = strcmp(keepAdding, 'Yes');
     end
 end
 clf; 
 figure();
-imshow(grayimg); hold on;
+imagesc(img); hold on;
 % ---- After user interacts, save new rectangle positions ----
 % User must manually adjust rectangles, then run this code to update
 for k = 1:length(largeClusters)
-
     rectangle('Position', largeClusters(k).searchBox, 'EdgeColor', 'g', 'LineWidth', 1);
 end
 
@@ -274,17 +274,21 @@ hold off;
 %%
 % Now perform the fft for the oil drops
 % FFT parameters
+% should i do parfor ? 
+
 Fs = 1; % Sampling frequency in Hz
 close all; 
+figure(112);
+imagesc(img); % want to plot the search boxes on here. 
 oilDropinfo = struct(); 
-oilDropinfo.frequency_interp = zeros(0,0); 
-oilDropinfo.frequency_uncert = zeros(0,0); 
-
-start_idx = 80  ; 
+oilDropinfo.pixel_displacement = cell(1, length(largeClusters)); 
+oilDropinfo.frequency_uncert = cell(1, length(largeClusters));  
+oilDropinfo.frequency_interp = cell(1, length(largeClusters));
+start_idx = 1 ; 
 tic; 
-for i = start_idx:length(dirnames)
-    tif_file = fullfile(folder, dirnames{i});
-    fprintf('Processing Drop: %s\n', tif_file);
+% for i = start_idx:length(dirnames)
+%     tif_file = fullfile(folder, dirnames{i});
+%     fprintf('Processing Drop: %s\n', tif_file);
     for k = 1:length(largeClusters)
         dropname = sprintf('Drop %d', k);
         oilDropinfo(k).Name = dropname;
@@ -292,7 +296,8 @@ for i = start_idx:length(dirnames)
          % for now...
          % ------- setting in the context of the global coordinates.
          % formatted to have each vertice. 
-         y1 = max(1, round(largeClusters(k).searchBox(2))) + fullrow_start - 1;
+         y1 = max(1, round(largeClusters(k).searchBox(2))) + fullrow_start - 1; % double check to make sure the box is being properly defined not going the
+
          y2 = round(largeClusters(k).searchBox(2) + largeClusters(k).searchBox(4)) + fullrow_start -1 ; 
          x1 = max(1, round(largeClusters(k).searchBox(1))) + fullcol_start -1;
          x2 = round(largeClusters(k).searchBox(1) + largeClusters(k).searchBox(3)) + fullcol_start -1;
@@ -302,47 +307,82 @@ for i = start_idx:length(dirnames)
 
          oilDropinfo(k).globalSearchBoxRectangularCoord = ([x1, y1  , largeClusters(k).searchBox(3), largeClusters(k).searchBox(4)]); % need to save this in rectangle formatm, x, y , width and height
          oilDropinfo(k).globalSearchBoxCoord = ([x1 , x2, y1, y2]); % this is in absolute --> which is useful later for defining the physical coordinates
-         camLoad = imread(tif_file, 'PixelRegion', {[y1, y2], [x1, x2]});
-         % Compute average span (along first dimension) and convert to uint16
-         % for speeed
-         original_N = length(camLoad); % Length of avg_span
-         window = hanning(original_N);
-         noverlap = floor(length(window))/2;
-         N = 2^nextpow2(original_N); % fft more efficient when in power of 2.
-         nfft = N; % added zero padding
-         % optimize FFT for repeated calls
-         fftw('planner','measure');
-         freq_slice= nan(size(camLoad,1),1); % clear the freq slice for each large cluster
+         numBox = 5; 
+         allFreq = cell(numBox, 1);% need to change this to the length of the frames we have
+         pixelSlope =  cell(numBox, 1); % each box will have mult values based on rows. 
+         pixelSlopeRMSE = cell(numBox, 1); 
 
-         for j = 1:size(camLoad, 1)
-             avg_detrend = detrend(double(camLoad(j, :))); 
-             [pxx, f] = pwelch(avg_detrend, window, noverlap, nfft, Fs); % takes the pwelch
-             [~, idx0] = min(abs(f)); % find the mean frequency
-             neighborRange = 5;
-             idxZero = max(idx0 - neighborRange, 1) : min(idx0 + neighborRange, length(pxx));
-             % Zero out those PSD values for the DC signal
-             pxx(idxZero) = 0;
-             % [~, idx] = max(pxx);
-             [~, peakLocforbox, peakLocforboxUncert] = fitGaussian(f, pxx); % single value per box
-             freq_slice(j) = peakLocforbox; %(peakLocforbox * Fs / N); 
-             % freq_slice(end+1, 2)  = (peakLocforboxUncert* Fs/N); 
+         % but then we need to tag this per oil drop ! 
+         hold on; 
+             for ll= 1:numBox
+                 yjitter  = sort([max(1, round(largeClusters(k).searchBox(2))), round(largeClusters(k).searchBox(2) + largeClusters(k).searchBox(4))] + [round(rand*10) -round(rand*30)]);
+                 xjitter = sort([max(1, round(largeClusters(k).searchBox(1))) , round(largeClusters(k).searchBox(1) + largeClusters(k).searchBox(3))] + [-1,1]*round(rand*5));
+                 % want to draw the box on the frame to make sure tau is being
+                 % calc correctly
+                 plot([xjitter(1) xjitter(1) xjitter(2) xjitter(2) xjitter(1)], ...
+                     [yjitter(1) yjitter(2) yjitter(2) yjitter(1) yjitter(1)], 'r');
+                 data_slice = framedata(yjitter(1):yjitter(2), xjitter(1):xjitter(2), :);  
+                 data_slice_mn = data_slice - mean(data_slice, 3); % time average subtraction. 
+                 
+                 original_N = length(data_slice_mn(:,:,1)); % just get one frame.
+                 window = hanning(original_N); % better to do a quarter of the length ? instead of hanning ?
+                 noverlap = floor(length(window))/2; % 50% overlap
+                 N = 2^nextpow2(original_N); % fft more efficient when in power of 2.
+                 nfft = N; % added zero padding
+                 % % optimize FFT for repeated calls
+                 fftw('planner','measure');
 
-         end
-         
-         oilDropinfo(k).frequency_interp = [oilDropinfo(k).frequency_interp, freq_slice];  % bc matlab is index 1 and bins are index 0 --> need to do -1 - conversion to freq !
-         oilDropinfo(k).frequency_uncert= [oilDropinfo(k).frequency_uncert;  std(freq_slice)]; % the stdev as determined by the average of each row. 
-         
-         oilDropinfo(k).physicalGlobalCoordinates(1:2) = (oilDropinfo(k).globalSearchBoxCoord(1:2) - calibrationXML(calibration_cameraNo).OriginPixelPosition(1)) * calibrationXML(calibration_cameraNo).Scales.X.FactorMmPerPixel; % note the calibration is +1 since we didn't use camera 1. 
-         oilDropinfo(k).physicalGlobalCoordinates(3:4) = (oilDropinfo(k).globalSearchBoxCoord(3:4) - calibrationXML(calibration_cameraNo).OriginPixelPosition(2)) * calibrationXML(calibration_cameraNo).Scales.Y.FactorMmPerPixel; 
-         % as we go further downstream the coordinates will get more
-         % negative.
-    end 
+                 pixelSlopeperrow = nan(size(data_slice(:, :, 1), 1),1 ); % dlambda/dt --> each row corresponds to the row where slope is calc for .
+                 pixelSlopeRSMEperrow = pixelSlopeperrow; % for each row, a dlambda/dt RSME
+                 freq_slice= nan(size( data_slice(:, :, 1), 1), size(data_slice,3)); % need to clear this before going thru the frames.
+                 % this will get the pixel displacement frequency for each frame.
 
-end 
+                 for j = 1:size(data_slice(:, :, 1), 1) % will traverse the individual pixel rows
+                     
+                     for frameNo = 1:size(data_slice, 3) % frameNo
+                         data_slice_frame = detrend(data_slice(j, :, frameNo), 'constant', 2); % add additional detrending.
+
+                         [pxx, f] = pwelch(data_slice_frame, window, noverlap, nfft, Fs); % takes the pwelch
+                         
+                         [~, idx0] = min(abs(f)); % avoid the mean. 
+                         neighborRange = 5;
+                         idxZero = max(idx0 - neighborRange, 1) : min(idx0 + neighborRange, length(pxx));
+                         % Zero out those PSD values for the DC signal
+                         pxx(idxZero) = 0;
+
+                         [~, peakLocforbox, ~] = fitGaussian(f, pxx); % single value per box
+                         % need per box, per slice length, per frame.
+                         freq_slice(j, frameNo) = 1/peakLocforbox; % this is in pixel
+                     end % end of the looping of frames
+                     out1 = (isoutlier(freq_slice(j,:))) ; % take out any outlier values.
+                     t = (1:length(freq_slice))/Fs;
+                     freq_slice(j, out1) = NaN;
+                     % figure(114); hold on;
+                     % plot(t, freq_slice, "k-o", MarkerEdgeColor="k", MarkerFaceColor = "k", MarkerSize =0.5);
+                     [ft2,gof2]=fit(t(~isnan(freq_slice(j, :)))',freq_slice(j, ~isnan(freq_slice(j, :)))','poly1','robust','Bisquare');
+                     % plot(ft2.p1, "ko", MarkerEdgeColor="k", MarkerFaceColor = "k", MarkerSize =1);
+                     % look for the smallest rmse
+                     pixelSlopeperrow(j) = ft2.p1; 
+                     pixelSlopeRSMEperrow(j) = gof2.rmse; 
+                     
+                 end % end of all the rows
+                    
+              
+                 allFreq{ll} = freq_slice;
+                 pixelSlope{ll} =  pixelSlopeperrow ; 
+                 pixelSlopeRMSE{ll} = pixelSlopeRSMEperrow ;                  
+             end
+                
+             oilDropinfo(k).frequency_interp = pixelSlope;
+             oilDropinfo(k).pixel_displacement = allFreq;
+             oilDropinfo(k).frequency_uncert= pixelSlopeRMSE;
+             oilDropinfo(k).physicalGlobalCoordinates(1:2) = (oilDropinfo(k).globalSearchBoxCoord(1:2) - calibrationXML(calibration_cameraNo).OriginPixelPosition(1)) * calibrationXML(calibration_cameraNo).Scales.X.FactorMmPerPixel; % note the calibration is +1 since we didn't use camera 1.
+             oilDropinfo(k).physicalGlobalCoordinates(3:4) = (oilDropinfo(k).globalSearchBoxCoord(3:4) - calibrationXML(calibration_cameraNo).OriginPixelPosition(2)) * calibrationXML(calibration_cameraNo).Scales.Y.FactorMmPerPixel;
+    end % end of loop for all the clusters.  
 endTime = toc; 
 fprintf("\n\tTotal time to run : %.2f\n", endTime); 
       %%
-t = linspace(start_idx, length(dirnames), (length(dirnames)-start_idx+1)/Fs);
+% t = linspace(start_idx, length(dirnames), (length(dirnames)-start_idx+1)/Fs);
 
 addpath('C:\Users\ak1u24\OneDrive - University of Southampton\MATLAB\Experimental Campaign 1\OFI\OFI Codes Tak');
 
@@ -351,7 +391,7 @@ T_atm = mean(atm_conditions.T);
 P_atm = atm_conditions.P0 / 1013; % in atm, the original pressure is reported in what seems like millibar
 % P_atm = 0.9928448; % for empty tunnel condition xd=2
 P_atm_Pa_uncert = 0.1*1000; % in Pa 
-theta      = camD*pi/180;               % Camera angle (rad)
+theta      = camD;               % Camera angle (rad)
 Magnif     = (1/pixelpermm).*10^(-3);    % Camera magnification factor (m/px) check calibration !
 
 % Physical "constants"
@@ -377,8 +417,8 @@ R_air   = 287.058;      % j/kg K
 x_range = ((cameraImg(cameraNo).GlobalCoordinatesFilteredImg(3:4) - calibrationXML(calibration_cameraNo).OriginPixelPosition(1))*calibrationXML(calibration_cameraNo).Scales.X.FactorMmPerPixel) + x_globalStart; 
 y_range = abs ((cameraImg(cameraNo).GlobalCoordinatesFilteredImg(1:2) - calibrationXML(calibration_cameraNo).OriginPixelPosition(2))*calibrationXML(calibration_cameraNo).Scales.Y.FactorMmPerPixel); % note this is rel to the orgin of the cal target, the cal target was centered w tunnel.
 
-RI = imref2d(size(grayimg_meansub), x_range, y_range); 
-figure(); imshow(grayimg_meansub); % overplot onto the image
+RI = imref2d(size(img), x_range, y_range); 
+figure(); imagesc(img); % overplot onto the image
 axis on; 
 xlabel( 'x [pixel]'); 
 ylabel('y [pixel]'); 
@@ -386,50 +426,52 @@ ylabel('y [pixel]');
 hold on; 
 for i = 1:length(oilDropinfo)
     oilDropinfo(i).plotXcoordmm = (oilDropinfo(i).physicalGlobalCoordinates(1:2)) + x_globalStart ;
-    theta_new = theta_change(camD, cam_z, oilDropinfo(i).plotXcoordmm, x_range);
-    theta_rad = theta_new*pi/180;               % Camera angle (rad)
+    theta_new = theta_change(camD, cam_z, oilDropinfo(i).searchBox, size(img, 2), 1/Magnif);
+    % theta_rad = theta_new*pi/180;               % Camera angle (rad)
+    % theta_rad = theta;
+    theta_rad = theta_new*pi/180; 
     n0 = sqrt(noil^2-nair^2*(sin(theta_rad))^2);
-    mdl_cell = cell(size(oilDropinfo(i).frequency_interp, 1),1);
-    tau_specificrow = nan(size(oilDropinfo(i).frequency_interp, 1),1); 
-    for k = 1:size(oilDropinfo(i).frequency_interp, 1)
-        % where k loops from the pixel row 1 -> k taking the fit through
-        % each frame which is the number of columns.
-        mdl_pixelrow = fitlm(t, 1./(oilDropinfo(i).frequency_interp(k, :)));
-        mdl_cell{k} = mdl_pixelrow;
-        tau_specificrow(k)= 2*n0*visc_oil*(mdl_pixelrow.Coefficients.Estimate(2))*Magnif/sodiumwave; % tau uncert is based on visc uncert and the slope uncert, units is Pa. 
-    end 
-    mdl = fitlm(t, 1./ mean(oilDropinfo(i).frequency_interp)); % gives slope info.
+
+    % Get absolute minima and linear indices per cell
+    [minVals, minIdxs] = cellfun(@(x) min(abs(x)), oilDropinfo(i).frequency_uncert);
+    % [minValGlobal, whichCell] = min(minVals); % per each cell --> want to
+    % get the least 
+    
+    % Extract the actual index in the chosen cell array
+    % idxInThatCell = minIdxs(whichCell);
+    % then this corresponds to the fit
+    slope_leasterror = arrayfun(@(j) oilDropinfo(i).frequency_interp{j}(minIdxs(j)), 1:numel(oilDropinfo(i).frequency_interp));
+    slope_leasterrorRMSE = arrayfun(@(j) oilDropinfo(i).frequency_uncert{j}(minIdxs(j)), 1:numel(oilDropinfo(i).frequency_interp)); 
+    
+    tau_specificrow = 2*n0*visc_oil.*slope_leasterror*Magnif/sodiumwave;
 
     oilDropinfo(i).thetaNew = theta_new; 
-    oilDropinfo(i).modelInfo = mdl_cell;
-    oilDropinfo(i).tauPerRow = tau_specificrow; 
-    % ----------- SLOPE UNCERTAINITY -------------------------
+    % oilDropinfo(i).modelInfo = mdl_cell;
+    oilDropinfo(i).tauPerRow = tau_specificrow; % an array for all the taus for a window that have the best fit. 
+    % ----------- SLOPE UNCERTAINITY -------------- -----------
     % for a certain drop, it gives the max and min possible slope. 
-    freq_std =     oilDropinfo(i).frequency_uncert; 
-    freq_avg =     1./ mean(oilDropinfo(i).frequency_interp, 'omitnan'); 
+    dlambdadt_std =     std(slope_leasterror, 'omitnan');  
+    dlambdadt_avg =     mean(slope_leasterror, 'omitnan'); 
     
-    [maxstdevval, maxstdevloc] = max(freq_std);
-    [minstdevval, minstdevloc] = min(freq_std);
-    if maxstdevloc < minstdevloc
-        slope1 = ((freq_avg(minstdevloc) - minstdevval) - (freq_avg(maxstdevloc) + maxstdevval)) / (t(minstdevloc) - t(maxstdevloc));
-        slope2 = ((freq_avg(minstdevloc) + minstdevval) - (freq_avg(maxstdevloc) - maxstdevval)) / (t(minstdevloc) - t(maxstdevloc));
-        % b1 = (freq_avg(maxstdevloc) + maxstdevval) - slope1*t(maxstdevloc);
-        % b2 = (freq_avg(maxstdevloc) - maxstdevval) -  slope2*t(maxstdevloc);
-
-    else
-        slope1 = ((freq_avg(maxstdevloc) - maxstdevval) - (freq_avg(minstdevloc) + minstdevval)) / (t(maxstdevloc) - t(minstdevloc));
-        slope2 = ((freq_avg(maxstdevloc) + maxstdevval) - (freq_avg(minstdevloc) - minstdevval)) / (t(maxstdevloc) - t(minstdevloc));
-        % b1 = (freq_avg(minstdevloc) + minstdevval) - slope1*t(minstdevloc);
-        % b2 = (freq_avg(minstdevloc) - minstdevval) - slope2*t(minstdevloc);
-    end
+    [maxstdevval, maxstdevloc] = max(dlambdadt_std);
+    [minstdevval, minstdevloc] = min(dlambdadt_std);
+    % if maxstdevloc < minstdevloc
+    %     slope1 = ((dlambdadt_avg(minstdevloc) - minstdevval) - (dlambdadt_avg(maxstdevloc) + maxstdevval)) / (t(minstdevloc) - t(maxstdevloc));
+    %     slope2 = ((dlambdadt_avg(minstdevloc) + minstdevval) - (dlambdadt_avg(maxstdevloc) - maxstdevval)) / (t(minstdevloc) - t(maxstdevloc));
+    %     % b1 = (freq_avg(maxstdevloc) + maxstdevval) - slope1*t(maxstdevloc);
+    %     % b2 = (freq_avg(maxstdevloc) - maxstdevval) -  slope2*t(maxstdevloc);
+    % 
+    % else
+    %     slope1 = ((dlambdadt_avg(maxstdevloc) - maxstdevval) - (dlambdadt_avg(minstdevloc) + minstdevval)) / (t(maxstdevloc) - t(minstdevloc));
+    %     slope2 = ((dlambdadt_avg(maxstdevloc) + maxstdevval) - (dlambdadt_avg(minstdevloc) - minstdevval)) / (t(maxstdevloc) - t(minstdevloc));
+    %     % b1 = (freq_avg(minstdevloc) + minstdevval) - slope1*t(minstdevloc);
+    %     % b2 = (freq_avg(minstdevloc) - minstdevval) - slope2*t(minstdevloc);
+    % end
 
     
     % --------------------------------------------------------------
     
-    [roundedCoeff, roundedError] = significantDigit(mdl.Coefficients.Estimate(2), mdl.Coefficients.SE(2)); 
-    slope = roundedCoeff; % pixel/s
-
-    slope_uncert = std([roundedCoeff, slope1, slope2]); % in pixel/s
+    [slope, slope_uncert] = significantDigit(dlambdadt_avg, dlambdadt_std); 
     oilDropinfo(i).slopeInfo = [slope, slope_uncert]; 
 
     % ----------Uncertainty Analysis in accordance with Propogation of
@@ -459,10 +501,10 @@ for i = 1:length(oilDropinfo)
     formatSpec = sprintf('%%.%df', sigDigitTracker); % e.g. '%.2f'
 
     % Construct the full LaTeX string with placeholders for tau and tau_uncert
-    strFormat = ['$ Drop \\: %i \\: \\tau = %s \\pm %s$ Pa'];
+    strFormat = ['$ Drop \\: %i \\: \\tau = %s \\pm %s$ Pa, $C_f = %.4f$'];
 
     % Use sprintf with the decimal format specifier on tau and tau_uncert
-    str = sprintf(strFormat, i, sprintf(formatSpec, tau), sprintf(formatSpec, tau_uncert));
+    str = sprintf(strFormat, i, sprintf(formatSpec, tau), sprintf(formatSpec, tau_uncert), Cf);
 
     % Now create the text with LaTeX interpreter
     text(largeClusters(i).Centroid(1), largeClusters(i).Centroid(2), str, ...
@@ -474,62 +516,62 @@ for i = 1:length(oilDropinfo)
         'Color', 'k');
 
 end
-%% figure for the streamwise dev of Cf
-% change desired folder !! 
-desiredFolder = 'C:\Users\ak1u24\OneDrive - University of Southampton\MATLAB\Experimental Campaign 1\OFI\Case 6 Streamwise Cf Development\xd=6'; 
-cd(desiredFolder); 
-
-figure(); 
-hold on; 
-xCoord_big = []; 
-Cf_big = []; 
-Cf_delta = []; 
-tau = []; 
-u_tau = []; 
- 
-xd = -8775; %8250; %8775; % mm 
-
-hold on; 
-avg_Cf_large = zeros(0, 0);
-std_Cf_large = zeros(0,0);
-xLoc_large = zeros(0,0);
-for i = 1:length(oilDropinfo)
-
-    xCoords = (oilDropinfo(i).physicalGlobalCoordinates(1:2)) + x_globalStart;     
-    % xCoords = sort(xCoords + x_globalStart); %  
-    xCoord_big(2*i - 1) = xCoords(1);
-    xCoord_big(2*i) = xCoords(2);
-    oilDropinfo(i).plotXcoordmm = xCoords; % this is the mat file i should save for each run ! 
-    Cf_area = oilDropinfo(i).Cf(1);
-    if oilDropinfo(i).tau(2) < 0.1 % if the error is unreasonably big
-        avg_tau = mean(oilDropinfo(i).tauPerRow);
-        std_tau = std(oilDropinfo(i).tauPerRow);
-        Cf = [avg_tau, avg_tau]/ P_dyn;
-        avg_Cf_large= [avg_Cf_large, Cf];
-        Cf_std = [std_tau, std_tau]/P_dyn;
-        if size(Cf_std, 2)~= size(Cf_std, 2)
-            Cf_std = Cf_std';
-        end
-        std_Cf_large  = [std_Cf_large,  Cf_std];
-        xLoc = oilDropinfo(i).plotXcoordmm; % this is a 2 element array
-        xLoc_large = [xLoc_large, xLoc];
-        errorbar(xLoc, Cf, Cf_std, "ro", MarkerFaceColor = "r")
-    end
-
-end
-xlabel("Global x [mm]"); 
-ylabel("$C_f$", Interpreter="latex"); 
-[~, xLoc_xd]= min(abs(xLoc_large - xd));   
-% take a moving mean average of 3 samples
-Cf_movingavg = movmean(avg_Cf_large, 3); 
-plot(xLoc_large(xLoc_xd),Cf_movingavg(xLoc_xd), "bp", MarkerSize = 10, MarkerFaceColor = "b"); 
-
-fprintf("\tCf at xd = %i : %.6f\n", xd, Cf_movingavg(xLoc_xd)); 
-xd6_recheck = struct('Cf', Cf_movingavg(xLoc_xd)); 
-fullFilePath2 = fullfile(desiredFolder, 'xd6_recheck');
-save(fullFilePath2, 'xd6_recheck'); 
-hold off
-
-filename = sprintf('camera%d_recheck_n0adjusted.mat', cameraNo);
-fullFilePath = fullfile(desiredFolder, filename);
-save(fullFilePath, 'oilDropinfo');
+ %% figure for the streamwise dev of Cf
+% % change desired folder !! 
+% desiredFolder = 'C:\Users\ak1u24\OneDrive - University of Southampton\MATLAB\Experimental Campaign 1\OFI\Case 6 Streamwise Cf Development\xd=6'; 
+% cd(desiredFolder); 
+% 
+% figure(); 
+% hold on; 
+% xCoord_big = []; 
+% Cf_big = []; 
+% Cf_delta = []; 
+% tau = []; 
+% u_tau = []; 
+% 
+% xd = -8775; %8250; %8775; % mm 
+% 
+% hold on; 
+% avg_Cf_large = zeros(0, 0);
+% std_Cf_large = zeros(0,0);
+% xLoc_large = zeros(0,0);
+% for i = 1:length(oilDropinfo)
+% 
+%     xCoords = (oilDropinfo(i).physicalGlobalCoordinates(1:2)) + x_globalStart;     
+%     % xCoords = sort(xCoords + x_globalStart); %  
+%     xCoord_big(2*i - 1) = xCoords(1);
+%     xCoord_big(2*i) = xCoords(2);
+%     oilDropinfo(i).plotXcoordmm = xCoords; % this is the mat file i should save for each run ! 
+%     Cf_area = oilDropinfo(i).Cf(1);
+%     if oilDropinfo(i).tau(2) < 0.1 % if the error is unreasonably big
+%         avg_tau = mean(oilDropinfo(i).tauPerRow);
+%         std_tau = std(oilDropinfo(i).tauPerRow);
+%         Cf = [avg_tau, avg_tau]/ P_dyn;
+%         avg_Cf_large= [avg_Cf_large, Cf];
+%         Cf_std = [std_tau, std_tau]/P_dyn;
+%         if size(Cf_std, 2)~= size(Cf_std, 2)
+%             Cf_std = Cf_std';
+%         end
+%         std_Cf_large  = [std_Cf_large,  Cf_std];
+%         xLoc = oilDropinfo(i).plotXcoordmm; % this is a 2 element array
+%         xLoc_large = [xLoc_large, xLoc];
+%         errorbar(xLoc, Cf, Cf_std, "ro", MarkerFaceColor = "r")
+%     end
+% 
+% end
+% xlabel("Global x [mm]"); 
+% ylabel("$C_f$", Interpreter="latex"); 
+% [~, xLoc_xd]= min(abs(xLoc_large - xd));   
+% % take a moving mean average of 3 samples
+% Cf_movingavg = movmean(avg_Cf_large, 3); 
+% plot(xLoc_large(xLoc_xd),Cf_movingavg(xLoc_xd), "bp", MarkerSize = 10, MarkerFaceColor = "b"); 
+% 
+% fprintf("\tCf at xd = %i : %.6f\n", xd, Cf_movingavg(xLoc_xd)); 
+% xd6_recheck = struct('Cf', Cf_movingavg(xLoc_xd)); 
+% fullFilePath2 = fullfile(desiredFolder, 'xd6_recheck');
+% save(fullFilePath2, 'xd6_recheck'); 
+% hold off
+% 
+% filename = sprintf('camera%d_recheck_n0adjusted.mat', cameraNo);
+% fullFilePath = fullfile(desiredFolder, filename);
+% save(fullFilePath, 'oilDropinfo');
